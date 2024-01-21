@@ -60,7 +60,7 @@ public class Board {
             ArrayList<Letter> matchingLetters = new ArrayList<>();
             for (int i = 0; i < rows; i++) {
                 for (int j = 0; j < cols; j++) {
-                    if (board[i][j].letter() == character) {
+                    if (board[i][j].getLetter() == character) {
                         matchingLetters.add(board[i][j]);
                     }
                 }
@@ -68,30 +68,36 @@ public class Board {
             letters2D.add(new ArrayList<>(matchingLetters));
             matchingLetters.clear();
         }
-        return hasAdjacentSequence(letters2D);
+        boolean result = hasAdjacentSequence(letters2D);
+
+        // free board
+        for(Letter[] row: board) {
+            for (Letter col: row) {
+                col.free();
+            }
+        }
+
+        return result;
     }
     private boolean hasAdjacentSequence(ArrayList<ArrayList<Letter>> letters2D) {
         if (letters2D == null || letters2D.isEmpty()) {
             return false;
         }
 
-        boolean[][] used = new boolean[rows][cols];
-
         // Start with the first list of letters and try to build a sequence
         ArrayList<Letter> startLetters = letters2D.get(0);
         for (Letter startLetter : startLetters) {
-            used[startLetter.x()][startLetter.y()] = true; // Mark the starting letter as used
-            if (buildSequence(startLetter, letters2D, 1, used)) {
+            startLetter.use(); // Mark the starting letter as used
+            if (buildSequence(startLetter, letters2D, 1)) {
                 return true;
             }
-            used[startLetter.x()][startLetter.y()] = false; // Unmark if not part of a valid sequence
+            startLetter.free(); // Unmark if not part of a valid sequence
         }
 
         return false;
     }
 
-
-    private boolean buildSequence(Letter currentLetter, ArrayList<ArrayList<Letter>> letters2D, int index, boolean[][] used) {
+    private boolean buildSequence(Letter currentLetter, ArrayList<ArrayList<Letter>> letters2D, int index) {
         if (index >= letters2D.size()) {
             // All letters in the sequence are successfully found
             return true;
@@ -99,16 +105,14 @@ public class Board {
 
         ArrayList<Letter> nextLetters = letters2D.get(index);
         for (Letter nextLetter : nextLetters) {
-            if (!used[nextLetter.x()][nextLetter.y()] && currentLetter.isAdjacentTo(nextLetter)) {
-                used[nextLetter.x()][nextLetter.y()] = true; // Mark the letter as used
-                if (buildSequence(nextLetter, letters2D, index + 1, used)) {
+            if (!nextLetter.isUsed() && currentLetter.isAdjacentTo(nextLetter)) {
+                nextLetter.use();
+                if (buildSequence(nextLetter, letters2D, index + 1)) {
                     return true;
                 }
-                used[nextLetter.x()][nextLetter.y()] = false; // Unmark if not part of a valid sequence
+                nextLetter.free(); // Unmark if not part of a valid sequence
             }
         }
-
         return false;
     }
-
 }
