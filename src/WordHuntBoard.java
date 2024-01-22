@@ -1,7 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class WordHuntBoard {
 
@@ -12,8 +10,10 @@ public class WordHuntBoard {
     private StringBuilder currentWord;
     private int score = 0;
     private final int GRID_SIZE = 4;
+    private Letter[][] board;
 
-    public WordHuntBoard() {
+    public WordHuntBoard(Letter[][] board) {
+        this.board = board;
         initializeGUI();
         currentWord = new StringBuilder();
     }
@@ -34,34 +34,11 @@ public class WordHuntBoard {
         boardPanel.setLayout(new GridLayout(GRID_SIZE, GRID_SIZE, 10, 10));
         boardPanel.setBackground(new Color(0, 102, 0));
 
-        for (int i = 0; i < GRID_SIZE * GRID_SIZE; i++) {
-            JButton letterButton = new JButton(Character.toString((char) ('A' + i % 26)));
-            letterButton.setFocusPainted(false);
-            letterButton.setBorderPainted(false);
-            letterButton.setFont(new Font("Arial", Font.BOLD, 24));
-            letterButton.setBackground(new Color(222, 184, 135));
-            letterButton.setOpaque(true);
-            letterButton.setForeground(Color.BLACK);
-
-            // Add to current word and toggle button color on click
-            letterButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    JButton button = (JButton) e.getSource();
-                    if (button.getBackground().equals(new Color(144, 238, 144))) { // Light green
-                        button.setBackground(new Color(222, 184, 135)); // Back to original
-                        // Remove last character from currentWord
-                        if (currentWord.length() > 0) {
-                            currentWord.deleteCharAt(currentWord.length() - 1);
-                        }
-                    } else {
-                        button.setBackground(new Color(144, 238, 144)); // Light green
-                        currentWord.append(button.getText()); // Add to current word
-                    }
-                }
-            });
-
-            boardPanel.add(letterButton);
+        for (int row = 0; row < GRID_SIZE; row++) {
+            for (int col = 0; col < GRID_SIZE; col++) {
+                JButton letterButton = getjButton(row, col);
+                boardPanel.add(letterButton);
+            }
         }
 
         frame.add(boardPanel, BorderLayout.CENTER);
@@ -69,22 +46,45 @@ public class WordHuntBoard {
         // Confirm button
         confirmButton = new JButton("Confirm Word");
         confirmButton.setFont(new Font("Arial", Font.BOLD, 20));
-        confirmButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // Print and reset the current word
-                System.out.println("Confirmed Word: " + currentWord.toString());
-                currentWord.setLength(0); // Reset the word
-                // Reset button colors
-                for (Component comp : boardPanel.getComponents()) {
-                    if (comp instanceof JButton) {
-                        comp.setBackground(new Color(222, 184, 135));
-                    }
+        confirmButton.addActionListener(e -> {
+            // Print and reset the current word
+            System.out.println("Confirmed Word: " + currentWord.toString());
+            currentWord.setLength(0); // Reset the word
+            // Reset button colors
+            for (Component comp : boardPanel.getComponents()) {
+                if (comp instanceof JButton) {
+                    comp.setBackground(new Color(222, 184, 135));
                 }
             }
         });
         frame.add(confirmButton, BorderLayout.SOUTH);
 
         frame.setVisible(true);
+    }
+
+    private JButton getjButton(int row, int col) {
+        JButton letterButton = new JButton(Character.toString(board[row][col].getLetter()));
+        letterButton.setFocusPainted(false);
+        letterButton.setBorderPainted(false);
+        letterButton.setFont(new Font("Arial", Font.BOLD, 24));
+        letterButton.setBackground(new Color(222, 184, 135));
+        letterButton.setOpaque(true);
+        letterButton.setForeground(Color.BLACK);
+
+        // Add to current word and toggle button color on click
+        letterButton.addActionListener(e -> {
+            JButton button = (JButton) e.getSource();
+            if (button.getBackground().equals(new Color(144, 238, 144))) { // Light green
+                button.setBackground(new Color(222, 184, 135)); // Back to original
+                // Remove last character from currentWord
+                if (!currentWord.isEmpty()) {
+                    currentWord.deleteCharAt(currentWord.length() - 1);
+                }
+            } else {
+                button.setBackground(new Color(144, 238, 144)); // Light green
+                currentWord.append(button.getText()); // Add to current word
+            }
+        });
+        return letterButton;
     }
 }

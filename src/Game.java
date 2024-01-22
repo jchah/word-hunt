@@ -1,3 +1,4 @@
+import javax.swing.*;
 import java.util.Scanner;
 
 public class Game {
@@ -10,6 +11,7 @@ public class Game {
         totalPoints = 0;
         board = new Board(rows, cols);
         scanner = new Scanner(System.in);
+        SwingUtilities.invokeLater(() -> new WordHuntBoard(board.getBoard()));
     }
 
     public void start() {
