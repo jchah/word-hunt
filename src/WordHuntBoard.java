@@ -1,6 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import javax.swing.Timer;
 
 public class WordHuntBoard {
 
@@ -12,12 +13,15 @@ public class WordHuntBoard {
     private final Board board;
     private static final Dictionary dictionary = new Dictionary("words.txt");
     private final ArrayList<String> usedWords;
+    private final ArrayList<JButton> selectedButtons;
+//    private boolean isDragging = false;
 
     public WordHuntBoard(int GRID_SIZE) {
         this.GRID_SIZE = GRID_SIZE;
         board = new Board(GRID_SIZE);
         currentWord = new StringBuilder();
         usedWords = new ArrayList<>();
+        selectedButtons = new ArrayList<>();
         initializeGUI();
     }
 
@@ -46,12 +50,22 @@ public class WordHuntBoard {
 
         frame.add(boardPanel, BorderLayout.CENTER);
 
-        // Confirm button
+        JButton confirmButton = getConfirmButton();
+        frame.add(confirmButton, BorderLayout.SOUTH);
+
+        frame.setVisible(true);
+    }
+
+
+    // TODO shouldn't be able to use non-adjacent letters to form words (which are legal because they can also be formed in an adjacent way)
+    private JButton getConfirmButton() {
         JButton confirmButton = new JButton("Confirm Word");
         confirmButton.setFont(new Font("Arial", Font.BOLD, 20));
         confirmButton.addActionListener(e -> {
             String input = currentWord.toString();
-            if (!usedWords.contains(currentWord.toString())) {
+            System.out.println(input);
+            System.out.println(usedWords.contains(input));
+            if (!usedWords.contains(input)) {
                 boolean legalSequence = board.isLegalSequence(input);
                 boolean validWord = dictionary.isValidWord(input);
 
@@ -60,27 +74,38 @@ public class WordHuntBoard {
                     score += wordLength >= 3 ? (wordLength == 3 ? 100 : (wordLength - 3) * 400) : 0;
                     scoreLabel.setText("Score: " + score);
                     usedWords.add(input);
-                    // todo flash green maybe
+                    flashColour(0, 255, 0);
                 }
-                // else {
-                // todo not legal sequence? flash red
-                // todo shouldn't be able to use non-adjacent letters to form words (which are legal because they can also be formed in an adjacent way)
-                currentWord.setLength(0); // Reset the word
-            }
-
-            // else {
-            // todo flash brown-orange? if they're already used
-
-            // Reset button colors
-            for (Component comp : boardPanel.getComponents()) {
-                if (comp instanceof JButton) {
-                    comp.setBackground(new Color(222, 184, 135));
+                else {
+                    flashColour(255, 0, 0);
                 }
             }
+
+            else {
+                flashColour(253, 165, 15);
+            }
+            currentWord.setLength(0); // Reset the word
         });
-        frame.add(confirmButton, BorderLayout.SOUTH);
+        return confirmButton;
+    }
 
-        frame.setVisible(true);
+    private void resetSelectedButtons(){
+        for (Component comp : boardPanel.getComponents()) {
+            if (comp instanceof JButton) {
+                comp.setBackground(new Color(222, 184, 135));
+            }
+        }
+        selectedButtons.clear();
+    }
+
+    private void flashColour(int r, int g, int b) {
+        for (JButton button : selectedButtons) {
+            button.setBackground(new Color(r, g, b));
+        }
+        int delay = 250; // 250 ms
+        Timer timer = new Timer(delay, e -> resetSelectedButtons());
+        timer.setRepeats(false); // Ensure the timer only runs once
+        timer.start();
     }
 
     private JButton getjButton(int row, int col) {
@@ -96,6 +121,7 @@ public class WordHuntBoard {
         letterButton.addActionListener(e -> {
             JButton button = (JButton) e.getSource();
             if (button.getBackground().equals(new Color(144, 238, 144))) { // Light green
+                selectedButtons.remove(button);
                 button.setBackground(new Color(222, 184, 135)); // Back to original
                 // Remove last character from currentWord
                 if (!currentWord.isEmpty()) {
@@ -103,6 +129,7 @@ public class WordHuntBoard {
                 }
             } else {
                 button.setBackground(new Color(144, 238, 144)); // Light green
+                selectedButtons.add(button);
                 currentWord.append(button.getText()); // Add to current word
             }
         });
