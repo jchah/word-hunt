@@ -8,10 +8,8 @@ import java.util.Map;
 import javax.swing.Timer;
 
 public class WordHuntBoard {
-
     private JPanel boardPanel;
     private JLabel scoreLabel;
-    private JLabel timeLabel;
     private final StringBuilder currentWord;
     private int score = 0;
     private final int GRID_SIZE;
@@ -21,7 +19,6 @@ public class WordHuntBoard {
     private final ArrayList<JButton> selectedButtons = new ArrayList<>();
     private boolean isDragging = false;
     private final Map <JButton, int[]> buttonCoords = new HashMap<>();
-    private int remainingTime = 90;
 
     public WordHuntBoard(int GRID_SIZE) {
         this.GRID_SIZE = GRID_SIZE;
@@ -38,13 +35,9 @@ public class WordHuntBoard {
 
         JPanel labelPanel = new JPanel(new BorderLayout());
 
-        timeLabel = new JLabel("Time: 0");
-        timeLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        timeLabel.setHorizontalAlignment(SwingConstants.CENTER);
-
         scoreLabel = new JLabel("Score: " + score);
         scoreLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        labelPanel.add(timeLabel, BorderLayout.NORTH);
+
         labelPanel.add(scoreLabel, BorderLayout.SOUTH);
         frame.add(labelPanel, BorderLayout.NORTH);
 
@@ -61,20 +54,7 @@ public class WordHuntBoard {
         }
 
         frame.add(boardPanel, BorderLayout.CENTER);
-        initializeTimer();
         frame.setVisible(true);
-    }
-
-    private void initializeTimer() {
-        Timer gameTimer = new Timer(1000, e -> {
-            remainingTime--;
-            int minutes = remainingTime/ 60;
-            int seconds = remainingTime % 60;
-            String timeFormatted = String.format("%d:%02d", minutes, seconds);
-            timeLabel.setText("Time: " + timeFormatted);
-        });
-        gameTimer.start();
-        // TODO when timer runs out big red "Game over!" label. Green "Play again?" button.
     }
 
     private void confirmWord() {
