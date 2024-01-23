@@ -4,16 +4,14 @@ import java.util.ArrayList;
 
 public class WordHuntBoard {
 
-    private JFrame frame;
     private JPanel boardPanel;
     private JLabel scoreLabel;
-    private JButton confirmButton;
-    private StringBuilder currentWord;
+    private final StringBuilder currentWord;
     private int score = 0;
     private final int GRID_SIZE;
     private final Board board;
     private static final Dictionary dictionary = new Dictionary("words.txt");
-    private ArrayList<String> usedWords;
+    private final ArrayList<String> usedWords;
 
     public WordHuntBoard(int GRID_SIZE) {
         this.GRID_SIZE = GRID_SIZE;
@@ -24,7 +22,7 @@ public class WordHuntBoard {
     }
 
     private void initializeGUI() {
-        frame = new JFrame("Word Hunt Game");
+        JFrame frame = new JFrame("Word Hunt Game");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(600, 600);
         frame.setLayout(new BorderLayout());
@@ -49,7 +47,7 @@ public class WordHuntBoard {
         frame.add(boardPanel, BorderLayout.CENTER);
 
         // Confirm button
-        confirmButton = new JButton("Confirm Word");
+        JButton confirmButton = new JButton("Confirm Word");
         confirmButton.setFont(new Font("Arial", Font.BOLD, 20));
         confirmButton.addActionListener(e -> {
             String input = currentWord.toString();
