@@ -9,9 +9,9 @@ public class Board {
     private final Map<Character, Integer> letterWeights;
     private final ArrayList<Character> weightedLetters = new ArrayList<>();
 
-    public Board(int rows, int cols) {
-        this.rows = rows;
-        this.cols = cols;
+    public Board(int GRID_SIZE) {
+        this.rows = GRID_SIZE;
+        this.cols = GRID_SIZE;
         this.board = new Letter[rows][cols];
 
         letterWeights = new HashMap<>();
@@ -70,7 +70,6 @@ public class Board {
         }
         boolean result = hasAdjacentSequence(letters2D);
 
-        // free board
         for(Letter[] row: board) {
             for (Letter col: row) {
                 col.free();

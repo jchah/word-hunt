@@ -1,5 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 
 public class WordHuntBoard {
 
@@ -9,13 +10,17 @@ public class WordHuntBoard {
     private JButton confirmButton;
     private StringBuilder currentWord;
     private int score = 0;
-    private final int GRID_SIZE = 4;
-    private Letter[][] board;
+    private final int GRID_SIZE;
+    private final Board board;
+    private static final Dictionary dictionary = new Dictionary("words.txt");
+    private ArrayList<String> usedWords;
 
-    public WordHuntBoard(Letter[][] board) {
-        this.board = board;
-        initializeGUI();
+    public WordHuntBoard(int GRID_SIZE) {
+        this.GRID_SIZE = GRID_SIZE;
+        board = new Board(GRID_SIZE);
         currentWord = new StringBuilder();
+        usedWords = new ArrayList<>();
+        initializeGUI();
     }
 
     private void initializeGUI() {
@@ -47,9 +52,27 @@ public class WordHuntBoard {
         confirmButton = new JButton("Confirm Word");
         confirmButton.setFont(new Font("Arial", Font.BOLD, 20));
         confirmButton.addActionListener(e -> {
-            // Print and reset the current word
-            System.out.println("Confirmed Word: " + currentWord.toString());
-            currentWord.setLength(0); // Reset the word
+            String input = currentWord.toString();
+            if (!usedWords.contains(currentWord.toString())) {
+                boolean legalSequence = board.isLegalSequence(input);
+                boolean validWord = dictionary.isValidWord(input);
+
+                if (legalSequence && validWord) {
+                    int wordLength = input.length();
+                    score += wordLength >= 3 ? (wordLength == 3 ? 100 : (wordLength - 3) * 400) : 0;
+                    scoreLabel.setText("Score: " + score);
+                    usedWords.add(input);
+                    // todo flash green maybe
+                }
+                // else {
+                // todo not legal sequence? flash red
+                // todo shouldn't be able to use non-adjacent letters to form words (which are legal because they can also be formed in an adjacent way)
+                currentWord.setLength(0); // Reset the word
+            }
+
+            // else {
+            // todo flash brown-orange? if they're already used
+
             // Reset button colors
             for (Component comp : boardPanel.getComponents()) {
                 if (comp instanceof JButton) {
@@ -63,7 +86,7 @@ public class WordHuntBoard {
     }
 
     private JButton getjButton(int row, int col) {
-        JButton letterButton = new JButton(Character.toString(board[row][col].getLetter()));
+        JButton letterButton = new JButton(Character.toString(board.getBoard()[row][col].getLetter()));
         letterButton.setFocusPainted(false);
         letterButton.setBorderPainted(false);
         letterButton.setFont(new Font("Arial", Font.BOLD, 24));
