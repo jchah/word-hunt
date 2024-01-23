@@ -3,27 +3,30 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import javax.swing.Timer;
 
 public class WordHuntBoard {
 
     private JPanel boardPanel;
     private JLabel scoreLabel;
+    private JLabel timeLabel;
     private final StringBuilder currentWord;
     private int score = 0;
     private final int GRID_SIZE;
     private final Board board;
     private static final Dictionary dictionary = new Dictionary("words.txt");
-    private final ArrayList<String> usedWords;
-    private final ArrayList<JButton> selectedButtons;
+    private final ArrayList<String> usedWords = new ArrayList<>();
+    private final ArrayList<JButton> selectedButtons = new ArrayList<>();
     private boolean isDragging = false;
+    private final Map <JButton, int[]> buttonCoords = new HashMap<>();
+    private int remainingTime = 90;
 
     public WordHuntBoard(int GRID_SIZE) {
         this.GRID_SIZE = GRID_SIZE;
         board = new Board(GRID_SIZE);
         currentWord = new StringBuilder();
-        usedWords = new ArrayList<>();
-        selectedButtons = new ArrayList<>();
         initializeGUI();
     }
 
@@ -33,9 +36,17 @@ public class WordHuntBoard {
         frame.setSize(600, 600);
         frame.setLayout(new BorderLayout());
 
+        JPanel labelPanel = new JPanel(new BorderLayout());
+
+        timeLabel = new JLabel("Time: 0");
+        timeLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        timeLabel.setHorizontalAlignment(SwingConstants.CENTER);
+
         scoreLabel = new JLabel("Score: " + score);
         scoreLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        frame.add(scoreLabel, BorderLayout.NORTH);
+        labelPanel.add(timeLabel, BorderLayout.NORTH);
+        labelPanel.add(scoreLabel, BorderLayout.SOUTH);
+        frame.add(labelPanel, BorderLayout.NORTH);
 
         boardPanel = new JPanel();
         boardPanel.setLayout(new GridLayout(GRID_SIZE, GRID_SIZE, 10, 10));
@@ -45,20 +56,29 @@ public class WordHuntBoard {
             for (int col = 0; col < GRID_SIZE; col++) {
                 JButton letterButton = getjButton(row, col);
                 boardPanel.add(letterButton);
+                buttonCoords.put(letterButton, new int[]{col, row});
             }
         }
 
         frame.add(boardPanel, BorderLayout.CENTER);
+        initializeTimer();
         frame.setVisible(true);
     }
 
-
-    // TODO shouldn't be able to use non-adjacent letters to form words (which are legal because they can also be formed in an adjacent way)
+    private void initializeTimer() {
+        Timer gameTimer = new Timer(1000, e -> {
+            remainingTime--;
+            int minutes = remainingTime/ 60;
+            int seconds = remainingTime % 60;
+            String timeFormatted = String.format("%d:%02d", minutes, seconds);
+            timeLabel.setText("Time: " + timeFormatted);
+        });
+        gameTimer.start();
+        // TODO when timer runs out big red "Game over!" label. Green "Play again?" button.
+    }
 
     private void confirmWord() {
         String input = currentWord.toString();
-        System.out.println(input);
-        System.out.println(usedWords.contains(input));
         if (!usedWords.contains(input)) {
             boolean legalSequence = board.isLegalSequence(input);
             boolean validWord = dictionary.isValidWord(input);
@@ -146,8 +166,16 @@ public class WordHuntBoard {
         return letterButton;
     }
 
+    private boolean areAdjacentButtons(JButton b1, JButton b2) {
+        int b1X = buttonCoords.get(b1)[0];
+        int b1Y = buttonCoords.get(b1)[1];
+        int b2X = buttonCoords.get(b2)[0];
+        int b2Y = buttonCoords.get(b2)[1];
+        return (Math.abs(b2X - b1X) <= 1) && (Math.abs(b2Y - b1Y) <= 1) && !(b2X == b1X && b2Y == b1Y);
+    }
+
     private void handleSelection(JButton button) {
-        if (!selectedButtons.contains(button)) {
+        if (!selectedButtons.contains(button) && (selectedButtons.isEmpty() || areAdjacentButtons(button, selectedButtons.get(selectedButtons.size() - 1)))) {
             selectedButtons.add(button);
             button.setBackground(new Color(144, 238, 144)); // Light green
             currentWord.append(button.getText());

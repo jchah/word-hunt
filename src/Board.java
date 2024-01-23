@@ -15,7 +15,7 @@ public class Board {
         this.board = new Letter[rows][cols];
 
         letterWeights = new HashMap<>();
-        int[] frequencies = {9, 2, 3, 4, 13, 2, 2, 6, 7, 1, 1, 4, 3, 7, 8, 2, 1, 6, 6, 9, 3, 1, 2, 1, 3, 1};
+        int[] frequencies = {80, 16, 30, 44, 120, 25, 17, 64, 80, 4, 8, 40, 30, 80, 80, 17, 5, 62, 80, 90, 34, 12, 20, 4, 20, 2};
 
         for (int i = 0; i < 26; i++) {
             char ch = (char) ('A' + i);
