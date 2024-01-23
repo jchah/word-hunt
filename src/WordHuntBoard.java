@@ -1,5 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import javax.swing.Timer;
 
@@ -14,7 +16,7 @@ public class WordHuntBoard {
     private static final Dictionary dictionary = new Dictionary("words.txt");
     private final ArrayList<String> usedWords;
     private final ArrayList<JButton> selectedButtons;
-//    private boolean isDragging = false;
+    private boolean isDragging = false;
 
     public WordHuntBoard(int GRID_SIZE) {
         this.GRID_SIZE = GRID_SIZE;
@@ -31,12 +33,10 @@ public class WordHuntBoard {
         frame.setSize(600, 600);
         frame.setLayout(new BorderLayout());
 
-        // Score label
         scoreLabel = new JLabel("Score: " + score);
         scoreLabel.setFont(new Font("Arial", Font.BOLD, 20));
         frame.add(scoreLabel, BorderLayout.NORTH);
 
-        // Board panel
         boardPanel = new JPanel();
         boardPanel.setLayout(new GridLayout(GRID_SIZE, GRID_SIZE, 10, 10));
         boardPanel.setBackground(new Color(0, 102, 0));
@@ -49,44 +49,36 @@ public class WordHuntBoard {
         }
 
         frame.add(boardPanel, BorderLayout.CENTER);
-
-        JButton confirmButton = getConfirmButton();
-        frame.add(confirmButton, BorderLayout.SOUTH);
-
         frame.setVisible(true);
     }
 
 
     // TODO shouldn't be able to use non-adjacent letters to form words (which are legal because they can also be formed in an adjacent way)
-    private JButton getConfirmButton() {
-        JButton confirmButton = new JButton("Confirm Word");
-        confirmButton.setFont(new Font("Arial", Font.BOLD, 20));
-        confirmButton.addActionListener(e -> {
-            String input = currentWord.toString();
-            System.out.println(input);
-            System.out.println(usedWords.contains(input));
-            if (!usedWords.contains(input)) {
-                boolean legalSequence = board.isLegalSequence(input);
-                boolean validWord = dictionary.isValidWord(input);
 
-                if (legalSequence && validWord) {
-                    int wordLength = input.length();
-                    score += wordLength >= 3 ? (wordLength == 3 ? 100 : (wordLength - 3) * 400) : 0;
-                    scoreLabel.setText("Score: " + score);
-                    usedWords.add(input);
-                    flashColour(0, 255, 0);
-                }
-                else {
-                    flashColour(255, 0, 0);
-                }
+    private void confirmWord() {
+        String input = currentWord.toString();
+        System.out.println(input);
+        System.out.println(usedWords.contains(input));
+        if (!usedWords.contains(input)) {
+            boolean legalSequence = board.isLegalSequence(input);
+            boolean validWord = dictionary.isValidWord(input);
+
+            int wordLength = input.length();
+            if (legalSequence && validWord && wordLength >= 3) {
+                score += wordLength == 3 ? 100 : (wordLength - 3) * 400;
+                scoreLabel.setText("Score: " + score);
+                usedWords.add(input);
+                flashColour(0, 255, 0);
             }
-
             else {
-                flashColour(253, 165, 15);
+                flashColour(255, 0, 0);
             }
-            currentWord.setLength(0); // Reset the word
-        });
-        return confirmButton;
+        }
+
+        else {
+            flashColour(253, 165, 15);
+        }
+        currentWord.setLength(0); // Reset the word
     }
 
     private void resetSelectedButtons(){
@@ -117,22 +109,48 @@ public class WordHuntBoard {
         letterButton.setOpaque(true);
         letterButton.setForeground(Color.BLACK);
 
-        // Add to current word and toggle button color on click
-        letterButton.addActionListener(e -> {
-            JButton button = (JButton) e.getSource();
-            if (button.getBackground().equals(new Color(144, 238, 144))) { // Light green
-                selectedButtons.remove(button);
-                button.setBackground(new Color(222, 184, 135)); // Back to original
-                // Remove last character from currentWord
-                if (!currentWord.isEmpty()) {
-                    currentWord.deleteCharAt(currentWord.length() - 1);
+        letterButton.addMouseMotionListener(new MouseAdapter() {
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                if (isDragging) {
+                    Point mousePoint = SwingUtilities.convertPoint(letterButton, e.getPoint(), letterButton.getParent());
+                    Component c = letterButton.getParent().getComponentAt(mousePoint);
+                    if (c instanceof JButton targetButton) {
+                        Rectangle bounds = targetButton.getBounds();
+                        Point center = new Point(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+                        double distance = center.distance(mousePoint);
+
+                        // Only select the button if the cursor is within half the width/height of the button (closer to the center)
+                        if (distance < Math.min(bounds.width, bounds.height) / 2.0) {
+                            handleSelection(targetButton);
+                        }
+                    }
                 }
-            } else {
-                button.setBackground(new Color(144, 238, 144)); // Light green
-                selectedButtons.add(button);
-                currentWord.append(button.getText()); // Add to current word
             }
         });
+
+        letterButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                isDragging = true;
+                handleSelection(letterButton);
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                isDragging = false;
+                confirmWord();
+            }
+        });
+
         return letterButton;
+    }
+
+    private void handleSelection(JButton button) {
+        if (!selectedButtons.contains(button)) {
+            selectedButtons.add(button);
+            button.setBackground(new Color(144, 238, 144)); // Light green
+            currentWord.append(button.getText());
+        }
     }
 }
