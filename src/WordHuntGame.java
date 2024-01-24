@@ -7,20 +7,19 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.swing.Timer;
 
-public class WordHuntBoard {
+public class WordHuntGame {
     private JPanel boardPanel;
     private JLabel scoreLabel;
     private final StringBuilder currentWord;
     private int score = 0;
     private final int GRID_SIZE;
     private final Board board;
-    private static final Dictionary dictionary = new Dictionary("words.txt");
     private final ArrayList<String> usedWords = new ArrayList<>();
     private final ArrayList<JButton> selectedButtons = new ArrayList<>();
     private boolean isDragging = false;
     private final Map <JButton, int[]> buttonCoords = new HashMap<>();
 
-    public WordHuntBoard(int GRID_SIZE) {
+    public WordHuntGame(int GRID_SIZE) {
         this.GRID_SIZE = GRID_SIZE;
         board = new Board(GRID_SIZE);
         currentWord = new StringBuilder();
@@ -61,7 +60,7 @@ public class WordHuntBoard {
         String input = currentWord.toString();
         if (!usedWords.contains(input)) {
             boolean legalSequence = board.isLegalSequence(input);
-            boolean validWord = dictionary.isValidWord(input);
+            boolean validWord = Dictionary.isValidWord(input);
 
             int wordLength = input.length();
             if (legalSequence && validWord && wordLength >= 3) {

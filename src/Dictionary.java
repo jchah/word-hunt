@@ -2,15 +2,14 @@ import java.io.*;
 import java.util.HashSet;
 
 public class Dictionary {
-    private final HashSet<String> words;
+    private static final HashSet<String> words = new HashSet<>();
 
-    public Dictionary(String fileName) {
-        words = new HashSet<>();
-        loadWords(fileName);
+    static {
+        loadWords();
     }
 
-    private void loadWords(String fileName) {
-        try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
+    private static void loadWords() {
+        try (BufferedReader br = new BufferedReader(new FileReader("words.txt"))) {
             String line;
             while ((line = br.readLine()) != null) {
                 words.add(line.trim().toLowerCase());
@@ -20,7 +19,7 @@ public class Dictionary {
         }
     }
 
-    public boolean isValidWord(String word) {
+    public static boolean isValidWord(String word) {
         return words.contains(word.toLowerCase());
     }
 }
